@@ -1,16 +1,18 @@
+require 'yaml'
+
 module Partyhat
   class Util
     # Convert an experience value to a level
     # Uses a formula from somewhere.
     # TODO: Add source for formula.
     def self.experience_to_level experience
-      modifier = 0
-      (1..200).each do |n|
-        modifier += (n + 300 * (2 ** (n.to_f/7.0))).floor
-        level     = (modifier/4).floor
-        return n if experience < level
+      levels = get_levels
+      level = 126
+      experience = 0 if experience < 0
+      while !levels[level].nil? && levels[level] > experience
+        level -= 1
       end
-      200
+      return level
     end
 
     # Convert a level value into experience
@@ -18,11 +20,12 @@ module Partyhat
     # FIXME: This is not accurate, check partyhat_util_spec results
     # TODO: Add source for formula.
     def self.level_to_experience level
-      experience = 0
-      (1..level-1).each do |n|
-        experience += (n + 300 * (2 ** (n.to_f/7.0))).floor
-      end
-      (experience/4).floor
+      return get_levels[level]
+    end
+
+    # get the array of level experiences from the levels.yaml data file
+    def self.get_levels
+      YAML::load_file(File.join(File.dirname(File.expand_path(__FILE__)), 'data/levels.yml'))
     end
 
     # Abbreviate a small or large number into compressed form
